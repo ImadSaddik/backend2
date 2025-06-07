@@ -243,18 +243,18 @@ Here are the key sections of your guide that need modification to implement the 
 
 ```mermaid
 sequenceDiagram
-    participant AI_Agent as AI Agent (PydanticAI)
+    participant AI_Agent as AI Agent (PydanticAI)e
     participant Tool_Bridge as Tool Bridge Container (Port: 8001)
     participant FastAPI as FastAPI App Container (Port: 8000)
 
     AI_Agent->>Tool_Bridge: 1. Connect via MCP Protocol (HTTP+SSE to port 8001)
     AI_Agent->>Tool_Bridge: 2. User Query: "Analyze Jeddah for warehouse"
-    Tool_Bridge->>FastAPI: 3. Need data: Calls saudi_location_fetcher
+    Tool_Bridge->>Tool_Bridge: 3. Need data: Calls saudi_location_fetcher
     Tool_Bridge->>FastAPI: 4. HTTP POST /fastapi/fetch_dataset
     FastAPI-->>Tool_Bridge: 5. Store data in temp JSON file
     Note right of Tool_Bridge: /tmp/session_abc123/real_estate_jeddah.json
     Tool_Bridge-->>AI_Agent: 6. MCP Response: DATA HANDLE
-    Note left of AI_Agent: {<br>"data_handle": "real_estate_jeddah_20241206_abc123",<br>"summary": {count: 50000},<br>"expires_at": "2024-12-06T18:00"<br>}
+    Note left of AI_Agent: {<br>"data_handle": "real_estat_jeddah_20241206_abc123",<br>"summary": {count: 50000},<br>"expires_at": "2024-12-06T18:00"<br>}
     AI_Agent->>Tool_Bridge: 7. Call analysis with handle "analyze_warehouse_locations"
     Note left of AI_Agent: {<br>"real_estate_handle": "real_estate_jeddah_20241206_abc123",<br>"criteria": {...}<br>}
     Tool_Bridge->>Tool_Bridge: 8. Analysis tool reads JSON file
