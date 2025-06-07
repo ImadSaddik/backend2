@@ -243,26 +243,23 @@ Here are the key sections of your guide that need modification to implement the 
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant AI Agent as AI Agent (PydanticAI)
-    participant ToolBridge as Tool Bridge Container
-    participant FastAPI as FastAPI App Container
+    participant AI_Agent as AI Agent (PydanticAI)
+    participant Tool_Bridge as Tool Bridge Container (Port: 8001)
+    participant FastAPI as FastAPI App Container (Port: 8000)
 
-    AI Agent->>+ToolBridge: 1. Connect via MCP & 2. Send User Query
-    note right of ToolBridge: 3. Tool Bridge decides data is needed and calls fetcher tool.
-    
-    ToolBridge->>+FastAPI: 4. HTTP POST to /fastapi/fetch_dataset
-    activate FastAPI
-    note left of FastAPI: FastAPI retrieves data and...
-    FastAPI-->>ToolBridge: 5. Stores data in a temp JSON file, returns success.
-    deactivate FastAPI
-
-    ToolBridge-->>-AI Agent: 6. Respond with Data Handle, summary, and expiry.
-    
-    AI Agent->>+ToolBridge: 7. Call 'analyze_warehouse_locations' with data handle and criteria.
-    note right of ToolBridge: 8. Analysis tool uses the handle to read the temp JSON file.
-    
-    ToolBridge-->>-AI Agent: 9. Respond with the final processed analysis.
+    AI_Agent->>Tool_Bridge: 1. Connect via MCP Protocol (HTTP+SSE to port 8001)
+    AI_Agent->>Tool_Bridge: 2. User Query: "Analyze Jeddah for warehouse"
+    Tool_Bridge->>FastAPI: 3. Need data: Calls saudi_location_fetcher
+    Tool_Bridge->>FastAPI: 4. HTTP POST /fastapi/fetch_dataset
+    FastAPI-->>Tool_Bridge: 5. Store data in temp JSON file
+    Note right of Tool_Bridge: /tmp/session_abc123/real_estate_jeddah.json
+    Tool_Bridge-->>AI_Agent: 6. MCP Response: DATA HANDLE
+    Note left of AI_Agent: {<br>"data_handle": "real_estate_jeddah_20241206_abc123",<br>"summary": {count: 50000},<br>"expires_at": "2024-12-06T18:00"<br>}
+    AI_Agent->>Tool_Bridge: 7. Call analysis with handle "analyze_warehouse_locations"
+    Note left of AI_Agent: {<br>"real_estate_handle": "real_estate_jeddah_20241206_abc123",<br>"criteria": {...}<br>}
+    Tool_Bridge->>Tool_Bridge: 8. Analysis tool reads JSON file
+    Note right of Tool_Bridge: /tmp/session_abc123/real_estate_jeddah.json
+    Tool_Bridge-->>AI_Agent: 9. MCP Response: Final Analysis (Processed insights)
 ```
 
 ## 2. Updated Data Validation Flow with Temporary JSON Storage
