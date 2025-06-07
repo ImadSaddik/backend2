@@ -267,53 +267,31 @@ sequenceDiagram
 
 ## 2. Updated Data Validation Flow with Temporary JSON Storage
 
-```Python
-┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐
-│   all_types/    │       │   Tool Bridge   │       │  FastAPI App    │
-│                 │       │   Container     │       │   Container     │
-│ ReqFetchDataset │◄──────┤ 1. Import       │       │                 │
-│ ResFetchDataset │       │    your models  │       │                 │
-│ DataHandle      │       │                 │       │                 │
-│ SessionInfo     │       │ 2. Generate     │       │                 │
-│                 │       │    tool schema: │       │                 │
-│                 │       │    ReqFetch     │       │                 │
-│                 │       │    Dataset.     │       │                 │
-│                 │       │    model_json   │       │                 │
-│                 │       │    _schema()    │       │                 │
-│                 │       │                 │       │                 │
-│                 │       │ 3. AI Agent     │       │                 │
-│                 │       │    calls tool   │       │                 │
-│                 │       │    via MCP      │       │                 │
-│                 │       │                 │       │                 │
-│                 │       │ 4. Validate:    │◄──────┤ 5. Your existing │
-│                 │       │    ReqFetch     │       │    validation   │
-│                 │       │    Dataset.     │       │                 │
-│                 │       │    model_       │       │ 6. Return        │
-│                 │       │    validate()   │       │    ResFetch     │
-│                 │       │         │       │       │    Dataset      │
-│                 │       │         ▼       │       │                 │
-│                 │       │ 5. HTTP POST ───┼──────►│ 7. Your         │
-│                 │       │    to FastAPI   │       │    fetch_dataset│
-│                 │       │                 │       │    function     │
-│                 │       │ 6. STORE DATA   │       │                 │
-│                 │       │    in JSON:     │       │ 8. Returns      │
-│                 │       │    /tmp/session_│       │    ResFetch     │
-│                 │       │    abc123/      │       │    Dataset      │
-│                 │       │    real_estate_ │       │                 │
-│                 │       │    jeddah.json  │       │                 │
-│                 │       │         │       │       │                 │
-│                 │       │         ▼       │       │                 │
-│                 │       │ 7. Return HANDLE│       │                 │
-│                 │       │    not data:    │       │                 │
-│                 │       │    DataHandle   │       │                 │
-│                 │       │    model        │       │                 │
-│                 │       │         │       │       │                 │
-│                 │       │         ▼       │       │                 │
-│                 │       │ 8. Stream handle│       │                 │
-│                 │       │    to AI Agent  │       │                 │
-│                 │       │    via SSE      │       │                 │
-└─────────────────┘       └─────────────────┘       └─────────────────┘
+```mermaid
+sequenceDiagram
+    autonumber
+    participant AI Agent
+    participant ToolBridge as Tool Bridge Container
+    participant FastAPI as FastAPI App Container
 
+    note over ToolBridge: 1. Imports Pydantic models (ReqFetchDataset, DataHandle).
+    note over ToolBridge: 2. Generates tool schema from models.
+
+    AI Agent->>+ToolBridge: 3. Calls tool with a request.
+    
+    note right of ToolBridge: 4. Validates the incoming request against the ReqFetchDataset schema.
+    
+    ToolBridge->>+FastAPI: 5. Sends validated request as HTTP POST.
+    activate FastAPI
+    note left of FastAPI: FastAPI runs its own validation and fetch_dataset function.
+    FastAPI-->>ToolBridge: Returns data (conforming to ResFetchDataset).
+    deactivate FastAPI
+    
+    note right of ToolBridge: 6. Stores the returned data in a temporary JSON file.
+    
+    note right of ToolBridge: 7. Creates a DataHandle model for the stored file.
+
+    ToolBridge-->>-AI Agent: 8. Streams the DataHandle back via SSE.
 ```
 
 Key Changes:
