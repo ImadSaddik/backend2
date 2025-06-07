@@ -241,58 +241,28 @@ Here are the key sections of your guide that need modification to implement the 
 
 ## 1. Updated Overall Architecture - Data Handles Flow
 
-```Python
-┌─────────────────┐                    ┌─────────────────┐                    ┌─────────────────┐
-│                 │                    │   Tool Bridge   │                    │  FastAPI App    │
-│   AI Agent      │                    │   Container     │                    │   Container     │
-│  (PydanticAI)   │                    │   Port: 8001    │                    │   Port: 8000    │
-│                 │                    │ + JSON Storage  │                    │                 │
-│                 │                    │                 │                    │                 │
-└─────────────────┘                    └─────────────────┘                    └─────────────────┘
-         │                                       │                                       │
-         │ 1. Connect via MCP Protocol          │                                       │
-         │    (HTTP+SSE to port 8001)           │                                       │
-         ├──────────────────────────────────────►│                                       │
-         │                                       │                                       │
-         │ 2. User Query:                        │                                       │
-         │    "Analyze Jeddah for warehouse"     │                                       │
-         ├──────────────────────────────────────►│                                       │
-         │                                       │                                       │
-         │                                       │ 3. Tool Bridge decides: need data    │
-         │                                       │    Calls: saudi_location_fetcher     │
-         │                                       │                                       │
-         │                                       │ 4. HTTP POST to FastAPI Container    │
-         │                                       ├──────────────────────────────────────►│
-         │                                       │   /fastapi/fetch_dataset              │
-         │                                       │                                       │
-         │                                       │ 5. Store data in temp JSON file      │
-         │                                       │◄──────────────────────────────────────┤
-         │                                       │   /tmp/session_abc123/               │
-         │                                       │   real_estate_jeddah.json            │
-         │                                       │                                       │
-         │ 6. MCP Response: DATA HANDLE          │                                       │
-         │    (NOT the actual data)              │                                       │
-         │◄──────────────────────────────────────┤                                       │
-         │   {                                   │                                       │
-         │     "data_handle": "real_estate_      │                                       │
-         │       jeddah_20241206_abc123",        │                                       │
-         │     "summary": {count: 50000},        │                                       │
-         │     "expires_at": "2024-12-06T18:00"  │                                       │
-         │   }                                   │                                       │
-         │                                       │                                       │
-         │ 7. AI Agent calls analysis with handle│                                       │
-         │    "analyze_warehouse_locations"       │                                       │
-         ├──────────────────────────────────────►│                                       │
-         │   {                                   │                                       │
-         │     "real_estate_handle": "real_      │ 8. Analysis tool reads JSON file     │
-         │       estate_jeddah_20241206_abc123", │    /tmp/session_abc123/              │
-         │     "criteria": {...}                 │    real_estate_jeddah.json           │
-         │   }                                   │                                       │
-         │                                       │                                       │
-         │ 9. MCP Response: Final Analysis       │                                       │
-         │    (Processed insights, not raw data) │                                       │
-         │◄──────────────────────────────────────┤                                       │
+```mermaid
+sequenceDiagram
+    autonumber
+    participant AI Agent as AI Agent (PydanticAI)
+    participant ToolBridge as Tool Bridge Container
+    participant FastAPI as FastAPI App Container
 
+    AI Agent->>+ToolBridge: 1. Connect via MCP & 2. Send User Query
+    note right of ToolBridge: 3. Tool Bridge decides data is needed and calls fetcher tool.
+    
+    ToolBridge->>+FastAPI: 4. HTTP POST to /fastapi/fetch_dataset
+    activate FastAPI
+    note left of FastAPI: FastAPI retrieves data and...
+    FastAPI-->>ToolBridge: 5. Stores data in a temp JSON file, returns success.
+    deactivate FastAPI
+
+    ToolBridge-->>-AI Agent: 6. Respond with Data Handle, summary, and expiry.
+    
+    AI Agent->>+ToolBridge: 7. Call 'analyze_warehouse_locations' with data handle and criteria.
+    note right of ToolBridge: 8. Analysis tool uses the handle to read the temp JSON file.
+    
+    ToolBridge-->>-AI Agent: 9. Respond with the final processed analysis.
 ```
 
 ## 2. Updated Data Validation Flow with Temporary JSON Storage
@@ -344,13 +314,14 @@ Here are the key sections of your guide that need modification to implement the 
 │                 │       │    via SSE      │       │                 │
 └─────────────────┘       └─────────────────┘       └─────────────────┘
 
+```
+
 Key Changes:
 ✅ Tools store large datasets in temporary JSON files
 ✅ AI Agent only receives lightweight handles + summaries  
 ✅ Analysis tools read data from JSON files using handles
 ✅ Zero context pollution - AI Agent context stays clean
 ✅ Session-based cleanup - temp files auto-deleted
-```
 
 ## 3. Updated Timeline: When Things Happen with Data Handles
 
