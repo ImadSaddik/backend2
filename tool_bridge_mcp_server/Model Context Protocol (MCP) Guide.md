@@ -473,40 +473,40 @@ class WarehouseLocationAnalyzer:
 flowchart TD
     subgraph Docker_Network["Docker Network: App Network"]
         direction TB
-        subgraph fastapi["fastapi-container"]
+        subgraph fastapi["<b>fastapi-container</b>"]
             direction TB
             F1["🐍 Your FastAPI App"]
             F2["📊 data_fetcher.py"]
             F3["🗄️ Your Database"]
             F4["🔌 Your Endpoints"]
             F5["Port: 8000"]
-            F6["Volumes: ./all_types:/app/all_types"]
+            F6["Volumes:<br/>./all_types:/app/all_types"]
         end
 
-        subgraph toolbridge["tool-bridge-container"]
+        subgraph toolbridge["<b>tool-bridge-container</b>"]
             direction TB
             T1["🤖 PydanticAI"]
             T2["🔧 Tool Definitions"]
             T3["🌐 HTTP Client"]
             T4["📡 MCP Protocol"]
-            T5["💾 JSON Storage: /tmp/sessions/"]
-            T6["Environment: FASTAPI_BASE_URL=http://fastapi-container:8000"]
+            T5["💾 JSON Storage:<br/>/tmp/sessions/"]
+            T6["Environment:<br/>FASTAPI_BASE_URL=http://fastapi-container:8000"]
             T7["Port: 8001 (MCP)"]
-            T8["Volumes: ./all_types:/app/all_types\n./tmp:/tmp"]
+            T8["Volumes:<br/>./all_types:/app/all_types<br/>./tmp:/tmp"]
         end
 
         fastapi -- "Standard HTTP" --> toolbridge
     end
 
-    subgraph ai_agent["AI Agent (Your Computer)"]
+    subgraph ai_agent["<b>AI Agent (Your Computer)</b>"]
         direction TB
         A1["🤖 PydanticAI Agent"]
         A2["📡 MCP Protocol Client"]
         A3["🔗 Data Handle Manager"]
-        A4["Connection:\n• HTTP+SSE: http://localhost:8001\n• JSON-RPC over persistent stream\n• Real-time bidirectional comms\n• Lightweight handle-based context"]
+        A4["Connection:<br/>• HTTP+SSE: http://localhost:8001<br/>• JSON-RPC over persistent stream<br/>• Real-time bidirectional comms<br/>• Lightweight handle-based context"]
     end
 
-    toolbridge --> ai_agent
+    toolbridge -- "MCP over HTTP+SSE" --> ai_agent
 ```
 
 ### Communication Flow with Data Handles
