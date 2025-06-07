@@ -417,53 +417,13 @@ Key Changes:
 
 ## 4. Updated Tool Discovery & Decision Flow with Handles
 
-```Python
-                           ┌─────────────────────────────────────┐
-                           │         AI Agent Brain              │
-                           │                                     │
-                           │  🧠 Pre-trained Knowledge:          │
-                           │  • Business analysis patterns       │
-                           │  • Data handle orchestration        │
-                           │  • Multi-step workflow planning     │
-                           │                                     │
-                           └─────────────────┬───────────────────┘
-                                            │
-                                            │ User Query
-                                            ▼
-                           ┌─────────────────────────────────────┐
-                           │       AI Agent Reasoning            │
-                           │                                     │
-                           │  "Analyze Jeddah warehouse" needs:  │
-                           │  1. Real estate data → Handle A     │
-                           │  2. Warehouse data → Handle B       │
-                           │  3. Analysis with A + B → Insights  │
-                           │                                     │
-                           │  Context stays CLEAN - only handles │
-                           │  and summaries, never raw data!     │
-                           │                                     │
-                           └─────────────────┬───────────────────┘
-                                            │
-                                            ▼
-                           ┌─────────────────────────────────────┐
-                           │         Execution Flow              │
-                           │                                     │
-                           │  Step 1: Call data_fetcher         │
-                           │  ├── Returns: Handle A + Summary    │
-                           │  └── AI Agent context: 200 tokens   │
-                           │                                     │
-                           │  Step 2: Call warehouse_fetcher     │
-                           │  ├── Returns: Handle B + Summary    │
-                           │  └── AI Agent context: 400 tokens   │
-                           │                                     │
-                           │  Step 3: Call analyzer(A, B)       │
-                           │  ├── Reads JSON files server-side   │
-                           │  ├── Returns: Business insights     │
-                           │  └── AI Agent context: 600 tokens   │
-                           │                                     │
-                           │  🎯 WITHOUT handles: 2M+ tokens!    │
-                           │  ✅ WITH handles: <1K tokens!       │
-                           │                                     │
-                           └─────────────────────────────────────┘
+```mermaid
+graph TD
+    A["AI Agent Brain<br/><br/><b>Pre-trained Knowledge:</b><br/>• Business analysis patterns<br/>• Data handle orchestration<br/>• Multi-step workflow planning"] -->|User Query| B;
+
+    B["AI Agent Reasoning<br/><br/><b>'Analyze Jeddah warehouse' needs:</b><br/>1. Real estate data → Handle A<br/>2. Warehouse data → Handle B<br/>3. Analysis with A + B → Insights<br/><br/><i>Context stays CLEAN - only handles<br/>and summaries, never raw data!</i>"] --> C;
+
+    C["Execution Flow<br/><br/><b>Step 1:</b> Call data_fetcher<br/>- Returns: Handle A + Summary<br/>- AI Agent context: 200 tokens<br/><br/><b>Step 2:</b> Call warehouse_fetcher<br/>- Returns: Handle B + Summary<br/>- AI Agent context: 400 tokens<br/><br/><b>Step 3:</b> Call analyzer(A, B)<br/>- Reads JSON files server-side<br/>- Returns: Business insights<br/>- AI Agent context: 600 tokens<br/><br/>🎯 WITHOUT handles: 2M+ tokens!<br/>✅ WITH handles: <1K tokens!"];
 ```
 
 ## 5. Updated Tool Examples with Data Handles
@@ -560,52 +520,44 @@ class WarehouseLocationAnalyzer:
 
 ## 6. Docker Container Communication Architecture with Data Handles
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              Docker Network: app-network                    │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌─────────────────────────┐                ┌─────────────────────────┐     │
-│  │    fastapi-container    │                │   tool-bridge-container │     │
-│  │                         │                │                         │     │
-│  │  🐍 Your FastAPI App    │                │  🤖 PydanticAI          │     │
-│  │  📊 data_fetcher.py     │                │  🔧 Tool Definitions    │     │
-│  │  🗄️  Your Database      │                │  🌐 HTTP Client         │     │
-│  │  🔌 Your Endpoints      │                │  📡 MCP Protocol        │     │
-│  │                         │                │  💾 JSON Storage:       │     │
-│  │  Port: 8000            │◄──────────────┤  /tmp/sessions/         │     │
-│  │                         │ Standard HTTP  │                         │     │
-│  │  Volumes:               │                │  Environment:           │     │
-│  │  ./all_types:/app/     │                │  FASTAPI_BASE_URL=      │     │
-│  │  all_types             │                │  http://fastapi-        │     │
-│  │                         │                │  container:8000         │     │
-│  │                         │                │                         │     │
-│  │                         │                │  Port: 8001 (MCP)      │     │
-│  │                         │                │                         │     │
-│  │                         │                │  Volumes:               │     │
-│  │                         │                │  ./all_types:/app/     │     │
-│  │                         │                │  all_types             │     │
-│  │                         │                │  ./tmp:/tmp            │     │
-│  │                         │                │                         │     │
-│  └─────────────────────────┘                └─────────────────────────┘     │
-│                                                         │                   │
-└─────────────────────────────────────────────────────────┼───────────────────┘
-                                                          │
-                                    ┌─────────────────────▼───────────────────┐
-                                    │            AI Agent                     │
-                                    │         (Your Computer)                 │
-                                    │                                         │
-                                    │  🤖 PydanticAI Agent                   │
-                                    │  📡 MCP Protocol Client                │
-                                    │  🔗 Data Handle Manager                │
-                                    │                                         │
-                                    │  Connection:                            │
-                                    │  • HTTP+SSE: http://localhost:8001     │
-                                    │  • JSON-RPC over persistent stream     │
-                                    │  • Real-time bidirectional comms       │
-                                    │  • Lightweight handle-based context    │
-                                    │                                         │
-                                    └─────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph Docker_Network["Docker Network: App Network"]
+        direction TB
+        subgraph fastapi["fastapi-container"]
+            direction TB
+            F1["🐍 Your FastAPI App"]
+            F2["📊 data_fetcher.py"]
+            F3["🗄️ Your Database"]
+            F4["🔌 Your Endpoints"]
+            F5["Port: 8000"]
+            F6["Volumes: ./all_types:/app/all_types"]
+        end
+
+        subgraph toolbridge["tool-bridge-container"]
+            direction TB
+            T1["🤖 PydanticAI"]
+            T2["🔧 Tool Definitions"]
+            T3["🌐 HTTP Client"]
+            T4["📡 MCP Protocol"]
+            T5["💾 JSON Storage: /tmp/sessions/"]
+            T6["Environment: FASTAPI_BASE_URL=http://fastapi-container:8000"]
+            T7["Port: 8001 (MCP)"]
+            T8["Volumes: ./all_types:/app/all_types\n./tmp:/tmp"]
+        end
+
+        fastapi -- "Standard HTTP" --> toolbridge
+    end
+
+    subgraph ai_agent["AI Agent (Your Computer)"]
+        direction TB
+        A1["🤖 PydanticAI Agent"]
+        A2["📡 MCP Protocol Client"]
+        A3["🔗 Data Handle Manager"]
+        A4["Connection:\n• HTTP+SSE: http://localhost:8001\n• JSON-RPC over persistent stream\n• Real-time bidirectional comms\n• Lightweight handle-based context"]
+    end
+
+    toolbridge --> ai_agent
 ```
 
 ### Communication Flow with Data Handles
