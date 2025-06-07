@@ -266,29 +266,35 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant AI Agent
+    participant Models as all_types/
     participant ToolBridge as Tool Bridge Container
     participant FastAPI as FastAPI App Container
+    participant AI_Agent as AI Agent
 
-    note over ToolBridge: 1. Imports Pydantic models (ReqFetchDataset, DataHandle).
-    note over ToolBridge: 2. Generates tool schema from models.
+    Note over Models: Pydantic Models Defined
+    box ToolBridge Logic
+        participant ToolBridge
+    end
 
-    AI Agent->>+ToolBridge: 3. Calls tool with a request.
-    
-    note right of ToolBridge: 4. Validates the incoming request against the ReqFetchDataset schema.
-    
-    ToolBridge->>+FastAPI: 5. Sends validated request as HTTP POST.
-    activate FastAPI
-    note left of FastAPI: FastAPI runs its own validation and fetch_dataset function.
-    FastAPI-->>ToolBridge: Returns data (conforming to ResFetchDataset).
-    deactivate FastAPI
-    
-    note right of ToolBridge: 6. Stores the returned data in a temporary JSON file.
-    
-    note right of ToolBridge: 7. Creates a DataHandle model for the stored file.
+    ToolBridge->>Models: 1. Import your models
+    ToolBridge->>Models: 2. Generate tool schema
+    Note right of ToolBridge: ReqFetchDataset.model_json_schema()
 
-    ToolBridge-->>-AI Agent: 8. Streams the DataHandle back via SSE.
+    AI_Agent->>ToolBridge: 3. Calls tool via MCP
+    ToolBridge->>Models: 4. Validate request
+    Note right of ToolBridge: ReqFetchDataset.model_validate()
+
+    ToolBridge->>FastAPI: 5. HTTP POST to FastAPI
+    FastAPI->>FastAPI: 6. Your existing validation
+    FastAPI->>FastAPI: 7. fetch_dataset function
+    FastAPI-->>ToolBridge: 8. Returns ResFetchDataset
+
+    ToolBridge->>ToolBridge: 9. Store data in JSON
+    Note right of ToolBridge: /tmp/session_abc123/real_estate_jeddah.json
+
+    ToolBridge->>Models: 10. Create DataHandle
+    ToolBridge-->>AI_Agent: 11. Stream handle via SSE
+    Note left of AI_Agent: DataHandle model (not raw data)
 ```
 
 Key Changes:
