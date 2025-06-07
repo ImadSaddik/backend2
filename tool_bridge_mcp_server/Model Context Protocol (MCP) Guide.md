@@ -367,12 +367,12 @@ Key Changes:
 ## 4. Updated Tool Discovery & Decision Flow with Handles
 
 ```mermaid
-graph TD
-    A["AI Agent Brain<br/><br/><b>Pre-trained Knowledge:</b><br/>• Business analysis patterns<br/>• Data handle orchestration<br/>• Multi-step workflow planning"] -->|User Query| B;
+graph LR
+    A["<b>AI Agent Brain</b><br/><br/><b>Pre-trained Knowledge:</b><br/>• Business analysis patterns<br/>• Data handle orchestration<br/>• Multi-step workflow planning"] -->|User Query| B;
 
-    B["AI Agent Reasoning<br/><br/><b>'Analyze Jeddah warehouse' needs:</b><br/>1. Real estate data → Handle A<br/>2. Warehouse data → Handle B<br/>3. Analysis with A + B → Insights<br/><br/><i>Context stays CLEAN - only handles<br/>and summaries, never raw data!</i>"] --> C;
+    B["<b>AI Agent Reasoning</b><br/><br/><b>'Analyze Jeddah warehouse' needs:</b><br/>1. Real estate data → Handle A<br/>2. Warehouse data → Handle B<br/>3. Analysis with A + B → Insights<br/><br/><i>Context stays CLEAN - only handles<br/>and summaries, never raw data!</i>"] --> C;
 
-    C["Execution Flow<br/><br/><b>Step 1:</b> Call data_fetcher<br/>- Returns: Handle A + Summary<br/>- AI Agent context: 200 tokens<br/><br/><b>Step 2:</b> Call warehouse_fetcher<br/>- Returns: Handle B + Summary<br/>- AI Agent context: 400 tokens<br/><br/><b>Step 3:</b> Call analyzer(A, B)<br/>- Reads JSON files server-side<br/>- Returns: Business insights<br/>- AI Agent context: 600 tokens<br/><br/>🎯 WITHOUT handles: 2M+ tokens!<br/>✅ WITH handles: <1K tokens!"];
+    C["<b>Execution Flow</b><br/><br/><b>Step 1:</b> Call data_fetcher<br/>- Returns: Handle A + Summary<br/>- AI Agent context: 200 tokens<br/><br/><b>Step 2:</b> Call warehouse_fetcher<br/>- Returns: Handle B + Summary<br/>- AI Agent context: 400 tokens<br/><br/><b>Step 3:</b> Call analyzer(A, B)<br/>- Reads JSON files server-side<br/>- Returns: Business insights<br/>- AI Agent context: 600 tokens<br/><br/>🎯 WITHOUT handles: 2M+ tokens!<br/>✅ WITH handles: <1K tokens!"];
 ```
 
 ## 5. Updated Tool Examples with Data Handles
